@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}My Files{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- File Upload Section -->
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-upload"></i> Upload File</h5>
+                </div>
+                <div class="card-body">
+                    <div id="alert-container"></div>
+                    <form action="{{ url_for('file.upload_file') }}" method="POST" enctype="multipart/form-data" data-upload>
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Choose File</label>
+                            <input type="file" class="form-control" id="file" name="file" required>
+                            <div class="form-text">
+                                Max size: 16MB<br>
+                                Allowed types: {{ ', '.join(config['ALLOWED_EXTENSIONS']) }}
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- File List Section -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file"></i> My Files</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-light btn-sm" id="viewToggle">
+                            <i class="fas fa-th-list"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if files %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Size</th>
+                                        <th>Uploaded</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for file in files %}
+                                    <tr class="file-item">
+                                        <td>
+                                            <i class="fas fa-file me-2 text-primary"></i>
+                                            {{ file.filename }}
+                                        </td>
+                                        <td>{{ file.size|filesizeformat }}</td>
+                                        <td>{{ file.created_at|datetime }}</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{{ url_for('file.download_file', file_id=file.id) }}" 
+                                                   class="btn btn-sm btn-outline-primary"
+                                                   data-bs-toggle="tooltip"
+                                                   title="Download">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-success"
+                                                        onclick="shareFile({{ file.id }})"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Share">
+                                                    <i class="fas fa-share-alt"></i>
+                                                </button>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick="deleteFile({{ file.id }})"
+                                                        data-bs-toggle="tooltip"
+                                                        title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-upload fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No files uploaded yet</h5>
+                            <p class="text-muted">Upload your first file using the form on the left</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Update file list
+function updateFileList() {
+    location.reload();
+}
+
+// Toggle view between list and grid
+document.getElementById('viewToggle').addEventListener('click', function() {
+    const icon = this.querySelector('i');
+    if (icon.classList.contains('fa-th-list')) {
+        icon.classList.replace('fa-th-list', 'fa-th');
+        // Implement grid view
+    } else {
+        icon.classList.replace('fa-th', 'fa-th-list');
+        // Implement list view
+    }
+});
+</script>
+{% endblock %} 

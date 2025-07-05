@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="display-4 mb-4">Secure File Sharing System</h1>
+            <p class="lead mb-4">
+                Upload, store, and share your files securely with our easy-to-use platform.
+                Get started today and experience trouble-free file management.
+            </p>
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-md-2">
+                    <i class="fas fa-user-plus me-2"></i>Sign Up Free
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login
+                </a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <img src="{{ url_for('static', filename='images/file-sharing.JPG') }}" alt="File Sharing Illustration" class="img-fluid">
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5 pt-5">
+        <div class="col-12 text-center mb-4">
+            <h2>Why Choose Our Platform?</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Secure Storage</h5>
+                    <p class="card-text">
+                        Your files are encrypted and stored securely in our data centers.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-share-alt fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Easy Sharing</h5>
+                    <p class="card-text">
+                        Share files with anyone, anywhere, with just a few clicks.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Access Anywhere</h5>
+                    <p class="card-text">
+                        Access your files from any device, anytime, anywhere.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <div class="p-5 bg-light rounded-3">
+                <h2 class="mb-4">Ready to Get Started?</h2>
+                <p class="lead mb-4">
+                    Join thousands of users who trust our platform for their file sharing needs.
+                </p>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Get Started Now
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

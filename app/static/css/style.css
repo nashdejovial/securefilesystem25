@@ -1,0 +1,128 @@
+/* Custom styles for the application */
+
+/* Body styles */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f8f9fa;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navbar customization */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* Card customization */
+.card {
+    border: none;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+/* Form customization */
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* File list styles */
+.file-item {
+    transition: background-color 0.2s ease-in-out;
+}
+
+.file-item:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.file-icon {
+    font-size: 1.5rem;
+    width: 2rem;
+    text-align: center;
+}
+
+/* Alert customization */
+.alert {
+    border: none;
+    border-radius: 0.5rem;
+}
+
+/* Button customization */
+.btn {
+    border-radius: 0.5rem;
+    padding: 0.5rem 1.5rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+}
+
+/* Footer customization */
+.footer {
+    background-color: #f6f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem 0;
+    margin-top: 2rem;
+}
+
+/* Utility classes */
+.shadow-hover:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Loading spinner */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+    
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+} 

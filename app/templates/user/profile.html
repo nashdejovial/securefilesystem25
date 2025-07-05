@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <div id="profile-alert-container"></div>
+                    
+                    <!-- Flash messages for form submissions -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <form id="profile-form" action="{{ url_for('user.update_profile') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ current_user.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ current_user.email }}" required>
+                            {% if not current_user.is_verified %}
+                                <div class="form-text text-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Email not verified. <a href="{{ url_for('auth.resend_verification') }}">Resend verification email</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Account Status</label>
+                            <div class="form-text">
+                                <i class="fas fa-circle {% if current_user.is_active %}text-success{% else %}text-danger{% endif %}"></i>
+                                {{ "Active" if current_user.is_active else "Inactive" }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <div class="form-text">
+                                <i class="fas fa-user-shield"></i>
+                                {{ current_user.role.value|title }}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Member Since</label>
+                            <div class="form-text">
+                                <i class="fas fa-calendar"></i>
+                                {{ current_user.created_at.strftime('%B %d, %Y') }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                        <button type="button" class="btn btn-secondary ms-2" onclick="useAjax()">
+                            <i class="fas fa-sync me-2"></i>Use AJAX Update
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Settings -->
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-lock"></i> Security Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div id="password-alert-container"></div>
+                    
+                    <form id="password-form" action="{{ url_for('user.change_password') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" 
+                                   name="current_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" 
+                                   name="new_password" required minlength="6">
+                            <div class="form-text">Password must be at least 6 characters long.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" 
+                                   name="confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </button>
+                        <button type="button" class="btn btn-secondary ms-2" onclick="useAjaxPassword()">
+                            <i class="fas fa-sync me-2"></i>Use AJAX Update
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <div class="mt-4">
+                        <h6 class="text-danger mb-3">Danger Zone</h6>
+                        <button type="button" class="btn btn-outline-danger" 
+                                onclick="confirmDeleteAccount()">
+                            <i class="fas fa-trash me-2"></i>Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Statistics -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Account Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div id="stats-container">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let useAjaxMode = false;
+
+// Load user statistics
+function loadUserStats() {
+    fetch('{{ url_for("user.user_stats") }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('stats-container').innerHTML = 
+                    '<div class="alert alert-danger">Error loading statistics</div>';
+            } else {
+                document.getElementById('stats-container').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">${data.owned_files_count}</h4>
+                                <small class="text-muted">Files Owned</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">${data.shared_files_count}</h4>
+                                <small class="text-muted">Files Shared</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">${data.total_storage_mb} MB</h4>
+                                <small class="text-muted">Storage Used</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">${data.last_login ? new Date(data.last_login).toLocaleDateString() : 'Never'}</h4>
+                                <small class="text-muted">Last Login</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading stats:', error);
+            document.getElementById('stats-container').innerHTML = 
+                '<div class="alert alert-danger">Error loading statistics</div>';
+        });
+}
+
+// Toggle AJAX mode for profile form
+function useAjax() {
+    useAjaxMode = !useAjaxMode;
+    const button = event.target;
+    if (useAjaxMode) {
+        button.innerHTML = '<i class="fas fa-sync me-2"></i>Use Form Submit';
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-warning');
+    } else {
+        button.innerHTML = '<i class="fas fa-sync me-2"></i>Use AJAX Update';
+        button.classList.remove('btn-warning');
+        button.classList.add('btn-secondary');
+    }
+}
+
+// Toggle AJAX mode for password form
+function useAjaxPassword() {
+    const button = event.target;
+    const form = document.getElementById('password-form');
+    
+    if (button.classList.contains('btn-secondary')) {
+        button.innerHTML = '<i class="fas fa-sync me-2"></i>Use Form Submit';
+        button.classList.remove('btn-secondary');
+        button.classList.add('btn-warning');
+        form.setAttribute('data-ajax', 'true');
+    } else {
+        button.innerHTML = '<i class="fas fa-sync me-2"></i>Use AJAX Update';
+        button.classList.remove('btn-warning');
+        button.classList.add('btn-secondary');
+        form.removeAttribute('data-ajax');
+    }
+}
+
+// Handle profile update
+document.getElementById('profile-form').addEventListener('submit', function(event) {
+    if (!useAjaxMode) return; // Let form submit normally
+    
+    event.preventDefault();
+    const formData = new FormData(this);
+    const data = {
+        name: formData.get('name'),
+        email: formData.get('email')
+    };
+
+    showSpinner();
+
+    fetch(this.action, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showAlert('profile-alert-container', 'error', data.error);
+        } else {
+            showAlert('profile-alert-container', 'success', data.message);
+            if (data.user && data.user.email !== formData.get('email')) {
+                showAlert('profile-alert-container', 'info', 'Please check your email to verify your new email address.');
+            }
+            // Reload stats
+            loadUserStats();
+        }
+    })
+    .catch(error => {
+        showAlert('profile-alert-container', 'error', 'An error occurred while updating your profile.');
+        console.error('Profile update error:', error);
+    })
+    .finally(() => {
+        hideSpinner();
+    });
+});
+
+// Handle password change
+document.getElementById('password-form').addEventListener('submit', function(event) {
+    if (!this.hasAttribute('data-ajax')) return; // Let form submit normally
+    
+    event.preventDefault();
+    const formData = new FormData(this);
+    
+    if (formData.get('new_password') !== formData.get('confirm_password')) {
+        showAlert('password-alert-container', 'error', 'New passwords do not match.');
+        return;
+    }
+
+    const data = {
+        current_password: formData.get('current_password'),
+        new_password: formData.get('new_password')
+    };
+
+    showSpinner();
+
+    fetch(this.action, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showAlert('password-alert-container', 'error', data.error);
+        } else {
+            showAlert('password-alert-container', 'success', data.message);
+            this.reset();
+        }
+    })
+    .catch(error => {
+        showAlert('password-alert-container', 'error', 'An error occurred while changing your password.');
+        console.error('Password change error:', error);
+    })
+    .finally(() => {
+        hideSpinner();
+    });
+});
+
+// Handle account deletion
+function confirmDeleteAccount() {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+        return;
+    }
+
+    const password = prompt('Please enter your password to confirm account deletion:');
+    if (!password) return;
+
+    showSpinner();
+
+    fetch('{{ url_for("user.delete_account") }}', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            showAlert('password-alert-container', 'error', data.error);
+        } else {
+            showAlert('password-alert-container', 'success', data.message);
+            setTimeout(() => {
+                window.location.href = '{{ url_for("auth.login") }}';
+            }, 2000);
+        }
+    })
+    .catch(error => {
+        showAlert('password-alert-container', 'error', 'An error occurred while deleting your account.');
+        console.error('Account deletion error:', error);
+    })
+    .finally(() => {
+        hideSpinner();
+    });
+}
+
+// Utility functions
+function showAlert(containerId, type, message) {
+    const container = document.getElementById(containerId);
+    const alertClass = type === 'error' ? 'danger' : type;
+    container.innerHTML = `
+        <div class="alert alert-${alertClass} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+}
+
+function showSpinner() {
+    // Add spinner logic if needed
+}
+
+function hideSpinner() {
+    // Remove spinner logic if needed
+}
+
+// Load stats on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserStats();
+});
+</script>
+{% endblock %}
+

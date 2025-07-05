@@ -1,0 +1,18 @@
+Welcome to Secure File Sharing!
+
+Hello {{ name }},
+
+Thank you for registering with our secure file sharing platform. To complete your registration and ensure the security of your account, please verify your email address by visiting this link:
+
+{{ verify_url }}
+
+This verification link will expire in 1 hour for security reasons.
+
+If you did not create an account with us, please ignore this email.
+
+Best regards,
+The Secure File Sharing Team
+
+---
+This is an automated message, please do not reply to this email.
+© {{ year }} Secure File Sharing. All rights reserved. 
